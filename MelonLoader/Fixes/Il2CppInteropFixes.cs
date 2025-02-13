@@ -113,7 +113,7 @@ namespace MelonLoader.Fixes
                     throw new Exception("Failed to get ClassInjector.RewriteType");
 
                 _registerTypeInIl2Cpp = classInjectorType.GetMethod("RegisterTypeInIl2Cpp",
-                    BindingFlags.Public | BindingFlags.Static, 
+                    BindingFlags.Public | BindingFlags.Static,
                     [typeof(Type), typeof(RegisterTypeOptions)]);
                 if (_registerTypeInIl2Cpp == null)
                     throw new Exception("Failed to get ClassInjector.RegisterTypeInIl2Cpp");
@@ -130,8 +130,8 @@ namespace MelonLoader.Fixes
                 if (_emitObjectToPointer == null)
                     throw new Exception("Failed to get ILGeneratorEx.EmitObjectToPointer");
 
-                _injectorHelpers_AddTypeToLookup = injectorHelpersType.GetMethod("AddTypeToLookup", 
-                    BindingFlags.NonPublic | BindingFlags.Static, 
+                _injectorHelpers_AddTypeToLookup = injectorHelpersType.GetMethod("AddTypeToLookup",
+                    BindingFlags.NonPublic | BindingFlags.Static,
                     [typeof(Type), typeof(IntPtr)]);
                 if (_injectorHelpers_AddTypeToLookup == null)
                     throw new Exception("Failed to get InjectorHelpers.AddTypeToLookup");
@@ -144,7 +144,7 @@ namespace MelonLoader.Fixes
                 if (_get_IsByRef == null)
                     throw new Exception("Failed to get Type.IsByRef.get");
 
-                _rewriteGlobalContext_AddAssemblyContext = rewriteGlobalContextType.GetMethod("AddAssemblyContext", 
+                _rewriteGlobalContext_AddAssemblyContext = rewriteGlobalContextType.GetMethod("AddAssemblyContext",
                     BindingFlags.NonPublic | BindingFlags.Instance);
                 if (_rewriteGlobalContext_AddAssemblyContext == null)
                     throw new Exception("Failed to get RewriteGlobalContext.AddAssemblyContext");
@@ -188,7 +188,7 @@ namespace MelonLoader.Fixes
 
                 LogDebugMsg("Patching Il2CppInterop ClassInjector.SystemTypeFromIl2CppType...");
                 Core.HarmonyInstance.Patch(_systemTypeFromIl2CppType,
-                    new HarmonyMethod(_systemTypeFromIl2CppType_Prefix), 
+                    new HarmonyMethod(_systemTypeFromIl2CppType_Prefix),
                     null,
                     new HarmonyMethod(_systemTypeFromIl2CppType_Transpiler));
 
@@ -306,7 +306,7 @@ namespace MelonLoader.Fixes
             _injectorHelpers_AddTypeToLookup.Invoke(null, [type, typePointer]);
 
             typePointer = IL2CPP.il2cpp_class_get_type(typePointer);
-            if (typePointer !=  IntPtr.Zero)
+            if (typePointer != IntPtr.Zero)
                 _typeLookup.Add(typePointer, type);
         }
 
@@ -412,7 +412,7 @@ namespace MelonLoader.Fixes
                 return true;
 
             string assemblyName = __0.Module.Assembly.Name;
-            if (string.IsNullOrEmpty(assemblyName)) 
+            if (string.IsNullOrEmpty(assemblyName))
                 return false;
 
             AssemblyRewriteContext rewriteContext = null;
@@ -441,11 +441,11 @@ namespace MelonLoader.Fixes
         {
             if ((IntPtr)__0 == IntPtr.Zero)
                 return false;
-			
+
             INativeTypeStruct wrappedType = UnityVersionHandler.Wrap(__0);
             if ((IntPtr)wrappedType.TypePointer == IntPtr.Zero)
                 return false;
-			
+
             if (_typeLookup.TryGetValue((IntPtr)wrappedType.TypePointer, out Type type))
             {
                 __result = (Type)_rewriteType.Invoke(null, [type]);
@@ -454,10 +454,6 @@ namespace MelonLoader.Fixes
 
             IntPtr klass = IL2CPP.il2cpp_class_from_type((IntPtr)wrappedType.TypePointer);
             if (klass == IntPtr.Zero)
-                return true;
-
-            IntPtr image = IL2CPP.il2cpp_class_get_image(klass);
-            if (image == IntPtr.Zero)
                 return true;
 
             IntPtr klassNamespace = IL2CPP.il2cpp_class_get_namespace(klass);
@@ -480,30 +476,24 @@ namespace MelonLoader.Fixes
                     fullTypeName = $"{klassNamespaceStr}.{klassNameStr}";
             }
 
-            IntPtr fileName = IL2CPP.il2cpp_image_get_filename(image);
-            if (fileName == IntPtr.Zero)
-                return true;
+            var assemblyName = "Il2Cpp" + Marshal.PtrToStringAnsi(IL2CPP.il2cpp_class_get_assemblyname(klass));
 
-            string fileNameStr = Marshal.PtrToStringAnsi(fileName);
-            if (string.IsNullOrEmpty(fileNameStr))
-                return true;
-
-            string il2cppAssemblyPath = Path.Combine(MelonEnvironment.Il2CppAssembliesDirectory, fileNameStr);
-            if (!File.Exists(il2cppAssemblyPath))
-                il2cppAssemblyPath = Path.Combine(MelonEnvironment.Il2CppAssembliesDirectory, $"Il2Cpp{fileNameStr}");
-            if (File.Exists(il2cppAssemblyPath))
+            Assembly asm;
+            try
             {
-                Assembly asm = Assembly.LoadFrom(il2cppAssemblyPath);
-                if (asm != null)
-                {
-                    __result = asm.GetType($"Il2Cpp.{fullTypeName}");
-                    if (__result == null)
-                        __result = asm.GetType($"Il2Cpp{fullTypeName}");
-                    if (__result == null)
-                        __result = asm.GetType(fullTypeName);
-                    if (__result != null)
-                        return false;
-                }
+                asm = Assembly.Load(assemblyName);
+            }
+            catch
+            {
+                MelonLogger.Warning($"SystemTypeFromIl2CppType fix failed to resolve assembly '{assemblyName}'");
+                return true;
+            }
+
+            __result = (asm.GetType($"Il2Cpp.{fullTypeName}") ?? asm.GetType($"Il2Cpp{fullTypeName}")) ?? asm.GetType(fullTypeName);
+            if (__result != null)
+            {
+                MelonDebug.Msg($"SystemTypeFromIl2CppType fix resolved type: {__result.AssemblyQualifiedName}");
+                return false;
             }
 
             return true;
@@ -514,7 +504,7 @@ namespace MelonLoader.Fixes
             bool found = false;
             foreach (CodeInstruction instruction in instructions)
             {
-                if (!found 
+                if (!found
                     && instruction.Calls(_getType))
                 {
                     found = true;
@@ -534,7 +524,7 @@ namespace MelonLoader.Fixes
             bool found2 = false;
             foreach (CodeInstruction instruction in instructions)
             {
-                if (!found 
+                if (!found
                     && instruction.Calls(_injectorHelpers_AddTypeToLookup))
                 {
                     found = true;
