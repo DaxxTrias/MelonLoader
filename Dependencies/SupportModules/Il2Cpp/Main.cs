@@ -78,6 +78,17 @@ namespace MelonLoader.Support
                 if (Il2Cppmscorlib == null)
                     throw new Exception("Unable to Find Assembly Il2Cppmscorlib!");
 
+                //var spanType = Il2Cppmscorlib.GetType("Il2CppSystem.Span`1");
+                //if (spanType == null)
+                //    throw new Exception("Unable to Find Type Il2CppSystem.Span`1");
+
+                //var genericSpanType = spanType.MakeGenericType(typeof(object)); // Replace 'object' with the appropriate type if known
+                //ConstructorInfo[] ctors = genericSpanType.GetConstructors();
+                //foreach (var ctor in ctors)
+                //{
+                //    MelonLogger.Msg($"Constructor: {ctor}");
+                //}
+
                 streamType = Il2Cppmscorlib.GetType("Il2CppSystem.IO.Stream");
                 if (streamType == null)
                     throw new Exception("Unable to Find Type Il2CppSystem.IO.Stream!");
@@ -136,10 +147,6 @@ namespace MelonLoader.Support
 
                 if (nullStreamWriter == null)
                     throw new Exception("Unable to Find Suitable Constructor of Type Il2CppSystem.IO.StreamWriter!");
-
-                object nullStreamWriter = streamWriterCtor.Invoke(new[] { nullStream, utf8Encoding, 1024, false });
-                if (nullStreamWriter == null)
-                    throw new Exception("Unable to Invoke Constructor of Type Il2CppSystem.IO.StreamWriter!");
 
                 Type consoleType = Il2Cppmscorlib.GetType("Il2CppSystem.Console");
                 if (consoleType == null)
