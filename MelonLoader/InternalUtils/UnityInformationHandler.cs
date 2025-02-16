@@ -9,7 +9,7 @@ using AssetsTools.NET;
 using AssetsTools.NET.Extra;
 using System.Drawing;
 using MelonLoader.Utils;
-using UnityVersion = AssetRipper.VersionUtilities.UnityVersion;
+using UnityVersion = AssetRipper.Primitives.UnityVersion;
 
 namespace MelonLoader.InternalUtils
 {
@@ -121,6 +121,10 @@ namespace MelonLoader.InternalUtils
                         AssetTypeValueField productName = playerSettings_baseField.Get("productName");
                         if (productName != null)
                             GameName = productName.AsString;
+                    }
+                    else
+                    {
+                        MelonLogger.Warning("Unable to find PlayerSettings in globalgamemanagers. Possible out-dated classdata.tpk present. Using fallback method.");
                     }
                 }
             }
