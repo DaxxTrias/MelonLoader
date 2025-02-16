@@ -99,27 +99,43 @@ namespace MelonLoader.Support
                     throw new Exception("Unable to Find Type Il2CppSystem.IO.StreamWriter!");
 
                 //Enumerate all constructors of Il2CppSystem.IO.StreamWriter
+                //ConstructorInfo[] constructors = streamWriterType.GetConstructors();
+                //foreach (var ctor in constructors)
+                //{
+                //    MelonLogger.Msg($"Constructor: {ctor}");
+                //}
+
+                object nullStreamWriter = null;
                 ConstructorInfo[] constructors = streamWriterType.GetConstructors();
                 foreach (var ctor in constructors)
                 {
-                    MelonLogger.Msg($"Constructor: {ctor}");
+                    ParameterInfo[] parameters = ctor.GetParameters();
+                    if (parameters.Length == 1 && parameters[0].ParameterType == streamType)
+                    {
+                        nullStreamWriter = ctor.Invoke(new[] { nullStream });
+                        break;
+                    }
+                    else if (parameters.Length == 4 && parameters[0].ParameterType == streamType)
+                    {
+                        Type encodingType = Il2Cppmscorlib.GetType("Il2CppSystem.Text.Encoding");
+                        if (encodingType == null)
+                            throw new Exception("Unable to Find Type Il2CppSystem.Text.Encoding!");
+
+                        MethodInfo getUtf8Method = encodingType.GetProperty("UTF8", BindingFlags.Static | BindingFlags.Public)?.GetGetMethod();
+                        if (getUtf8Method == null)
+                            throw new Exception("Unable to Find Method Il2CppSystem.Text.Encoding.get_UTF8!");
+
+                        object utf8Encoding = getUtf8Method.Invoke(null, null);
+                        if (utf8Encoding == null)
+                            throw new Exception("Unable to Get Value of Il2CppSystem.Text.Encoding.UTF8!");
+
+                        nullStreamWriter = ctor.Invoke(new[] { nullStream, utf8Encoding, 1024, false });
+                        break;
+                    }
                 }
 
-                Type encodingType = Il2Cppmscorlib.GetType("Il2CppSystem.Text.Encoding");
-                if (encodingType == null)
-                    throw new Exception("Unable to Find Type Il2CppSystem.Text.Encoding!");
-
-                MethodInfo getUtf8Method = encodingType.GetProperty("UTF8", BindingFlags.Static | BindingFlags.Public)?.GetGetMethod();
-                if (getUtf8Method == null)
-                    throw new Exception("Unable to Find Method Il2CppSystem.Text.Encoding.get_UTF8!");
-
-                object utf8Encoding = getUtf8Method.Invoke(null, null);
-                if (utf8Encoding == null)
-                    throw new Exception("Unable to Get Value of Il2CppSystem.Text.Encoding.UTF8!");
-
-                ConstructorInfo streamWriterCtor = streamWriterType.GetConstructor(new[] { streamType, encodingType, typeof(int), typeof(bool) });
-                if (streamWriterCtor == null)
-                    throw new Exception("Unable to Find Constructor of Type Il2CppSystem.IO.StreamWriter!");
+                if (nullStreamWriter == null)
+                    throw new Exception("Unable to Find Suitable Constructor of Type Il2CppSystem.IO.StreamWriter!");
 
                 object nullStreamWriter = streamWriterCtor.Invoke(new[] { nullStream, utf8Encoding, 1024, false });
                 if (nullStreamWriter == null)
