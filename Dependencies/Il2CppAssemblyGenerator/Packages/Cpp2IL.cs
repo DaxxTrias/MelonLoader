@@ -83,8 +83,8 @@ namespace MelonLoader.Il2CppAssemblyGenerator.Packages
 
             if (!string.IsNullOrEmpty(LoaderConfig.Current.UnityEngine.CustomMetadataOverride))
             {
-                arguments.Add("--custom-metadata");
-                arguments.Add(LoaderConfig.Current.UnityEngine.CustomMetadataOverride);
+                arguments.Add("--force-metadata-version");
+                arguments.Add("\"" + LoaderConfig.Current.UnityEngine.CustomMetadataOverride + "\"");
             }
 
             return Execute(arguments.ToArray(), false, new Dictionary<string, string>() {
