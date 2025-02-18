@@ -58,7 +58,9 @@ namespace MelonLoader.Il2CppAssemblyGenerator.Packages
             => Save(ref Config.Values.DumperVersion);
 
         internal override bool Execute()
-            => Execute([
+        {
+            var arguments = new List<string>
+            {
                 MelonDebug.IsEnabled() ? "--verbose" : string.Empty,
 
                 "--game-path",
@@ -77,9 +79,17 @@ namespace MelonLoader.Il2CppAssemblyGenerator.Packages
                 LoaderConfig.Current.UnityEngine.EnableCpp2ILNativeMethodDetector ? "nativemethoddetector" : string.Empty,
                 //"deobfmap",
                 //"stablenamer",
+            };
 
-            ], false, new Dictionary<string, string>() {
+            if (!string.IsNullOrEmpty(LoaderConfig.Current.UnityEngine.CustomMetadataOverride))
+            {
+                arguments.Add("--custom-metadata");
+                arguments.Add(LoaderConfig.Current.UnityEngine.CustomMetadataOverride);
+            }
+
+            return Execute(arguments.ToArray(), false, new Dictionary<string, string>() {
                 {"NO_COLOR", "1"},
             });
+        }
     }
 }

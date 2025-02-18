@@ -160,5 +160,9 @@ public class LoaderConfig
         [TomlProperty("enable_cpp2il_native_method_detector")]
         [TomlPrecedingComment("Enables the NativeMethodDetector processor for Cpp2IL. Equivalent to the '--cpp2il.nativemethoddetector' launch option")]
         public bool EnableCpp2ILNativeMethodDetector { get; internal set; }
+
+        [TomlProperty("custom_metadata_override")]
+        [TomlPrecedingComment("Overrides the custom metadata argument for Cpp2IL. Equivalent to the '--cpp2il.custommetadata' launch option")]
+        public string CustomMetadataOverride { get; internal set; } = "";
     }
 }
