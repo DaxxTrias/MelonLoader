@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using MelonLoader.Utils;
 using System.IO;
 using MelonLoader.InternalUtils;
+using System.Threading.Tasks;
 
 [assembly: MelonLoader.PatchShield]
 
@@ -55,7 +56,8 @@ namespace MelonLoader.Support
             if (!LoaderConfig.Current.UnityEngine.DisableConsoleLogCleaner)
                 ConsoleCleaner();
 
-            SceneHandler.Init();
+            //SceneHandler.Init();
+            DelayedInit();
 
             MonoEnumeratorWrapper.Register();
 
@@ -67,6 +69,12 @@ namespace MelonLoader.Support
             runtime.Start();
 
             return new SupportModule_To();
+        }
+
+        private static async void DelayedInit()
+        {
+            await Task.Delay(3000);
+            SceneHandler.Init();
         }
 
         private static void ConsoleCleaner()
